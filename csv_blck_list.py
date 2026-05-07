@@ -1,10 +1,11 @@
 import pandas as pd
 from pathlib import Path
+from datetime import datetime
 
 
 def generate_transfer_file(
     input_file: str,
-    output_folder: str,
+    output_folder: Path,
     output_file: str,
     email_column: str = "Email",
     reason_text: str = "Usuario en lista negra"
@@ -15,17 +16,11 @@ def generate_transfer_file(
 
     Email,Reason
 
-    El archivo se guarda dentro de una carpeta destino.
+    Guarda el archivo dentro de una carpeta diaria.
     """
 
     try:
-        # Crear carpeta de salida si no existe
-        Path(output_folder).mkdir(
-            parents=True,
-            exist_ok=True
-        )
-
-        # Leer archivo CSV original
+        # Leer CSV original
         df = pd.read_csv(
             input_file,
             dtype=str,
@@ -62,10 +57,10 @@ def generate_transfer_file(
         # Eliminar duplicados
         export_df = export_df.drop_duplicates()
 
-        # Ruta completa de salida
-        output_path = Path(output_folder) / output_file
+        # Ruta final archivo
+        output_path = output_folder / output_file
 
-        # Guardar CSV final
+        # Guardar CSV
         export_df.to_csv(
             output_path,
             index=False,
@@ -86,10 +81,26 @@ def generate_transfer_file(
 
 
 # =====================================================
-# Carpeta donde se guardarán los nuevos CSV
+# CREAR CARPETA DIARIA
 # =====================================================
 
-OUTPUT_FOLDER = "processed_csv"
+# Fecha actual
+today = datetime.now().strftime("%Y-%m-%d")
+
+# Carpeta base
+base_folder = Path("processed_csv")
+
+# Carpeta diaria
+daily_folder = base_folder / f"processed_csv_{today}"
+
+# Crear carpetas automáticamente
+daily_folder.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+print(f"Carpeta del día creada:")
+print(daily_folder)
 
 
 # =====================================================
@@ -98,12 +109,12 @@ OUTPUT_FOLDER = "processed_csv"
 
 generate_transfer_file(
     input_file="FROZEN_SAAS.csv",
-    output_folder=OUTPUT_FOLDER,
+    output_folder=daily_folder,
     output_file="FROZEN_SAAS_TO_PROMO_TC.csv"
 )
 generate_transfer_file(
     input_file="INVALID_SAAS.csv",
-    output_folder=OUTPUT_FOLDER,
+    output_folder=daily_folder,
     output_file="INVALID_SAAS_TO_PROMO_TC.csv"
 )
 
@@ -114,11 +125,11 @@ generate_transfer_file(
 
 generate_transfer_file(
     input_file="FROZEN_PROMO.csv",
-    output_folder=OUTPUT_FOLDER,
+    output_folder=daily_folder,
     output_file="FROZEN_PROMO_TO_SAAS_TC.csv"
 )
 generate_transfer_file(
     input_file="INVALID_PROMO.csv",
-    output_folder=OUTPUT_FOLDER,
+    output_folder=daily_folder,
     output_file="INVALID_PROMO_TO_SAAS_TC.csv"
 )
