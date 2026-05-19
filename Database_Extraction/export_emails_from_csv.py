@@ -28,6 +28,12 @@ def extract_emails_from_cell(cell_value):
     emails = re.findall(EMAIL_PATTERN, cell_str)
     return emails
 
+
+def normalize_email(email):
+    """Normaliza el email para comparar duplicados correctamente."""
+    return email.strip().lower()
+
+
 def process_xlsx_file(file_path):
     """Procesa un archivo XLSX y extrae todos los emails."""
     emails = set()
@@ -43,7 +49,8 @@ def process_xlsx_file(file_path):
             for row in sheet.iter_rows(values_only=True):
                 for cell_value in row:
                     found_emails = extract_emails_from_cell(cell_value)
-                    emails.update(found_emails)
+                    normalized_emails = {normalize_email(email) for email in found_emails}
+                    emails.update(normalized_emails)
         
         workbook.close()
     
