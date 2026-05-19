@@ -12,8 +12,8 @@ Este directorio contiene herramientas para extraer direcciones de correo de arch
 - El script `export_emails_from_csv.py` recorre todo el contenido de `Source`, incluyendo subcarpetas.
 - Extrae todas las direcciones de correo encontradas en los archivos dentro de `Source`.
 - Genera dos archivos CSV en `Results`:
-  - `emails_unico.csv`: lista de emails únicos.
-  - `emails_por_dominio.csv`: conteo de emails por dominio.
+  - `emails_list.csv`: lista de emails únicos.
+  - `emails_per_domain.csv`: conteo de emails por dominio.
 
 - El script `delete_source.py` borra todo el contenido de la carpeta `Source`, incluyendo subcarpetas.
 
