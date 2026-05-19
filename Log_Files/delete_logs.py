@@ -3,17 +3,18 @@ from pathlib import Path
 
 
 def delete_textlog_parts() -> None:
-    """Elimina todos los archivos textlog_part*.log del directorio actual."""
+    """Elimina todos los archivos .log dentro de la carpeta Source junto al script."""
     script_dir = Path(__file__).resolve().parent
-    pattern = 'textlog_part*.log'
+    source_dir = script_dir / 'Source'
+    pattern = '*.log'
     
-    files = sorted(script_dir.glob(pattern))
+    files = sorted(source_dir.glob(pattern))
     
     if not files:
-        print('No se encontraron archivos textlog_part*.log para eliminar.')
+        print(f'No se encontraron archivos .log en {source_dir} para eliminar.')
         return
     
-    print(f'Se eliminarán {len(files)} archivo(s):')
+    print(f'Se eliminarán {len(files)} archivo(s) en {source_dir}:')
     for f in files:
         print(f'  - {f.name}')
     
