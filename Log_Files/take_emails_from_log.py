@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 
 EMAIL_RE = re.compile(r'[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}')
-ENCODING_RE = re.compile(r'^Content-Transfer-Encoding:\s*(7bit|8bit)\b', re.IGNORECASE)
 RECORD_START_RE = re.compile(r'^From\s.+$', re.MULTILINE)
 SENDER_LOCAL_PARTS = {'marketing', 'noreply'}
 RECEIVER_PATTERNS = [
@@ -55,15 +54,6 @@ def extract_receivers_from_text(text: str) -> set[str]:
     return receivers
 
 
-def extract_encoding_from_text(text: str) -> str:
-    for line in text.splitlines():
-        match = ENCODING_RE.match(line)
-        if match:
-            value = match.group(1).lower()
-            return '7-bit' if value == '7bit' else '8-bit' if value == '8bit' else value
-    return 'unknown'
-
-
 def split_log_records(text: str) -> list[str]:
     parts = RECORD_START_RE.split(text)
     if len(parts) <= 1:
@@ -103,13 +93,13 @@ def main() -> None:
     if not log_files:
         raise SystemExit(f'No se encontraron archivos .log en {source_dir}.')
 
-    normal_rows: set[tuple[str, str]] = set()
-    telecom_rows: set[tuple[str, str]] = set()
+    normal_rows: set[str] = set()
+    telecom_rows: set[str] = set()
     total_records = 0
 
     for log_file in log_files:
-        file_normal_rows: set[tuple[str, str]] = set()
-        file_telecom_rows: set[tuple[str, str]] = set()
+        file_normal_rows: set[str] = set()
+        file_telecom_rows: set[str] = set()
         file_forbidden_emails: set[str] = set()
 
         with log_file.open('r', encoding='utf-8', errors='replace') as f:
@@ -122,17 +112,15 @@ def main() -> None:
             receivers = extract_receivers_from_text(record)
             if not receivers:
                 continue
-            encoding = extract_encoding_from_text(record)
             for receiver in sorted(receivers):
                 domain = receiver.split('@', 1)[1].lower()
                 if domain in forbidden_domains:
                     file_forbidden_emails.add(receiver)
                     continue
-                row = (receiver, encoding)
                 if domain in telecom_domains:
-                    file_telecom_rows.add(row)
+                    file_telecom_rows.add(receiver)
                 else:
-                    file_normal_rows.add(row)
+                    file_normal_rows.add(receiver)
 
         normal_rows.update(file_normal_rows)
         telecom_rows.update(file_telecom_rows)
@@ -148,15 +136,15 @@ def main() -> None:
 
     with normal_csv.open('w', encoding='utf-8', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Email', 'Codificacion'])
-        for email, encoding in sorted(normal_rows):
-            writer.writerow([email, encoding])
+        writer.writerow(['Email'])
+        for email in sorted(normal_rows):
+            writer.writerow([email])
 
     with telecom_csv.open('w', encoding='utf-8', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Email', 'Codificacion'])
-        for email, encoding in sorted(telecom_rows):
-            writer.writerow([email, encoding])
+        writer.writerow(['Email'])
+        for email in sorted(telecom_rows):
+            writer.writerow([email])
 
     print(f'Procesados {len(log_files)} archivos .log desde {source_dir}')
     print(f'Total de registros encontrados: {total_records}')
